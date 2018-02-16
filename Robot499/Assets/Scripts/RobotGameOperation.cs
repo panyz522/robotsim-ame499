@@ -3,20 +3,24 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RobotGameOperation : MonoBehaviour {
     public GameObject body;
     public bool recordAngles;
     public float angleMeasureDeltaTime;
+    public Text txtDist;
 
     private IRobotController controller;
     private List<float>[] angles;
     private List<float> times;
     private float lastMeasureTime;
+    private Transform tr;
 
 	// Use this for initialization
 	void Start () {
         controller = GetComponent<IRobotController>();
+        tr = body.GetComponent<Transform>();
         angles = new List<float>[8];
         for (int i = 0; i < 8; i++)
             angles[i] = new List<float>();
@@ -29,6 +33,7 @@ public class RobotGameOperation : MonoBehaviour {
         {
             RecordAngles();
         }
+        txtDist.text = string.Format("Dist: {0:0.00} cm", + tr.position.x * 100);
 	}
 
     public void OutputAngles()
