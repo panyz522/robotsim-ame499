@@ -49,6 +49,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
     private bool isReady = false;
     private bool isStart = false;
     private bool isPause = false;
+    private bool isGettingReady = false;
     // Update is called once per frame
     void Update()
     {
@@ -59,8 +60,6 @@ public class RobotController2 : MonoBehaviour, IRobotController
             state = 0;
             return;
         }
-        if (!isStart)
-            state = 0;
         if (isPause)
             return;
 
@@ -73,18 +72,24 @@ public class RobotController2 : MonoBehaviour, IRobotController
                 break;
             }
         }
-
+        //Debug.Log(isLegsAvailable);
         var topStepPos = steplength * 3 / 2;
         if (isLegsAvailable)
         {
             switch (state)
             {
                 case 0:
+                    if (isGettingReady)
+                    {
+                        if (isStart)
+                            state = 1;
+                        break;
+                    }
                     FootMove(0, topStepPos - 3 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
                     FootMove(1, topStepPos - 1 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
                     FootMove(2, topStepPos - 0 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
                     FootMove(3, topStepPos - 2 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
-                    state = 1;
+                    isGettingReady = true;
                     break;
                 case 1:
                     FootMove(0, topStepPos - 0 * steplength + frontOffset, moveV, MoveProgram.Step);
@@ -225,7 +230,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
             }
         }
 
-        SetMotorByPos(i, (float)x, (float)y, i);
+        SetMotorByPos(i, (float)x, (float)y);
     }
 
     private void Update_FootHorizontalMove(int i)
@@ -248,7 +253,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
             x = (time - t0) / (t1 - t0) * (x1 - x0) + x0;
 
         // Update motor state
-        SetMotorByPos(i, x, height, i);
+        SetMotorByPos(i, x, height);
     }
 
     private bool GetBendDir(int i)
@@ -259,16 +264,16 @@ public class RobotController2 : MonoBehaviour, IRobotController
         return bendDir;
     }
 
-    private void SetMotorByPos(int i, float x, float y, int legGroup)
+    private void SetMotorByPos(int i, float x, float y)
     {
         // Set angles
         double alpha1 = 0, alpha2 = 0;
-        GetAngleByDist(ref alpha1, ref alpha2, x, y, legGroup);
+        GetAngleByDist(ref alpha1, ref alpha2, x, y, i);
         Motors[i, 0].targetAngle = (float)(alpha1);
         Motors[i, 1].targetAngle = (float)(alpha2);
 
         // Log positions
-        footPositions[legGroup] = new Vector2(x, y);
+        footPositions[i] = new Vector2(x, y);
     }
 
     private void GetAngleByDist(ref double alpha1, ref double alpha2, float len, float hei, int legGroup)
