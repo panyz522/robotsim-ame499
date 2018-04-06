@@ -11,7 +11,8 @@ public class RobotController2 : MonoBehaviour, IRobotController
     public List<float> lengthLegRear;
     public float frontOffset;
     public float rearOffset;
-    public float steplength;
+    public float stepLength;
+    public float subStepHoriRatio;
     public float height;
     public float moveV;
 
@@ -50,6 +51,9 @@ public class RobotController2 : MonoBehaviour, IRobotController
     private bool isStart = false;
     private bool isPause = false;
     private bool isGettingReady = false;
+    private float topStepPos;
+    private float subStepH;
+    private float subStepS;
     // Update is called once per frame
     void Update()
     {
@@ -72,8 +76,11 @@ public class RobotController2 : MonoBehaviour, IRobotController
                 break;
             }
         }
-        //Debug.Log(isLegsAvailable);
-        var topStepPos = steplength * 3 / 2;
+
+        topStepPos = stepLength / 2;
+        subStepH = stepLength * subStepHoriRatio / 2;
+        subStepS = stepLength * (1.0f - subStepHoriRatio) / 3;
+
         if (isLegsAvailable)
         {
             switch (state)
@@ -85,38 +92,52 @@ public class RobotController2 : MonoBehaviour, IRobotController
                             state = 1;
                         break;
                     }
-                    FootMove(0, topStepPos - 3 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(1, topStepPos - 1 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(2, topStepPos - 0 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(3, topStepPos - 2 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
+                    FootMoveAbbr(0, 2, 3, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 1, 1, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 0, 0, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 1, 2, state, MoveProgram.Horizontal);
                     isGettingReady = true;
                     break;
                 case 1:
-                    FootMove(0, topStepPos - 0 * steplength + frontOffset, moveV, MoveProgram.Step);
-                    FootMove(1, topStepPos - 2 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(2, topStepPos - 1 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(3, topStepPos - 3 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
+                    FootMoveAbbr(0, 0, 0, state, MoveProgram.Step);
+                    FootMoveAbbr(1, 1, 2, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 0, 1, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 1, 3, state, MoveProgram.Horizontal);
+                    state = 2;
+                    break;
+                case 2:
+                    FootMoveAbbr(0, 1, 0, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 2, 2, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 1, 1, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 2, 3, state, MoveProgram.Horizontal);
                     state = 3;
                     break;
                 case 3:
-                    FootMove(0, topStepPos - 1 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(1, topStepPos - 3 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(2, topStepPos - 2 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(3, topStepPos - 0 * steplength + rearOffset, moveV, MoveProgram.Step);
+                    FootMoveAbbr(0, 1, 1, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 2, 3, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 1, 2, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 0, 0, state, MoveProgram.Step);
                     state = 4;
                     break;
                 case 4:
-                    FootMove(0, topStepPos - 2 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(1, topStepPos - 0 * steplength + frontOffset, moveV, MoveProgram.Step);
-                    FootMove(2, topStepPos - 3 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(3, topStepPos - 1 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
+                    FootMoveAbbr(0, 1, 2, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 0, 0, state, MoveProgram.Step);
+                    FootMoveAbbr(2, 1, 3, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 0, 1, state, MoveProgram.Horizontal);
+                    state = 5;
+                    break;
+                case 5:
+                    FootMoveAbbr(0, 2, 2, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 1, 0, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 2, 3, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(3, 1, 1, state, MoveProgram.Horizontal);
                     state = 6;
                     break;
                 case 6:
-                    FootMove(0, topStepPos - 3 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(1, topStepPos - 1 * steplength + frontOffset, moveV, MoveProgram.Horizontal);
-                    FootMove(2, topStepPos - 0 * steplength + rearOffset, moveV, MoveProgram.Step);
-                    FootMove(3, topStepPos - 2 * steplength + rearOffset, moveV, MoveProgram.Horizontal);
+                    FootMoveAbbr(0, 2, 3, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(1, 1, 1, state, MoveProgram.Horizontal);
+                    FootMoveAbbr(2, 0, 0, state, MoveProgram.Step);
+                    FootMoveAbbr(3, 1, 2, state, MoveProgram.Horizontal);
                     state = 1;
                     break;
             }
@@ -163,6 +184,17 @@ public class RobotController2 : MonoBehaviour, IRobotController
     public float GetHeight()
     {
         return height;
+    }
+
+    private void FootMoveAbbr(int i, int horiBack, int stepBack, int state, MoveProgram program)
+    {
+        float t = moveV;
+        if (state == 2 || state == 5)
+        {
+            t = moveV / subStepS * subStepH;
+        }
+        FootMove(i, topStepPos - stepBack * subStepS - horiBack * subStepH + ((i < 2) ? frontOffset : rearOffset), 
+            t, program);
     }
 
     // Give leg moving order

@@ -31,6 +31,8 @@ public class MotorController : MonoBehaviour {
 
         // Set motor
         var motor = hinge.motor;
+        var rawForce = 0.1469f - 0.000249f * Mathf.Abs(hinge.velocity);
+        motor.force = (rawForce >= 0) ? rawForce : 0;
         motor.targetVelocity = speed * ((deltaAngle > 0) ? 1 : -1);
         hinge.motor = motor;
     }
