@@ -13,6 +13,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
     public float rearOffset;
     public float stepLength;
     public float subStepHoriRatio;
+    public float rightScale;
     public float height;
     public float moveV;
 
@@ -20,7 +21,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
     private MotorController[,] Motors = new MotorController[4, 2];
     private LegGroupInfo[] LegGroups = new LegGroupInfo[4];
     private float time;
-    private float stepOffset = 0.5f;
+    private float stepOffset = 1f;
     private Vector2[] footPositions;
 
     // Use this for initialization
@@ -193,7 +194,7 @@ public class RobotController2 : MonoBehaviour, IRobotController
         {
             t = moveV / subStepS * subStepH;
         }
-        FootMove(i, topStepPos - stepBack * subStepS - horiBack * subStepH + ((i < 2) ? frontOffset : rearOffset), 
+        FootMove(i, (topStepPos - stepBack * subStepS - horiBack * subStepH + ((i < 2) ? frontOffset : rearOffset)) * ((i % 2 > 0) ? rightScale : 1), 
             t, program);
     }
 
