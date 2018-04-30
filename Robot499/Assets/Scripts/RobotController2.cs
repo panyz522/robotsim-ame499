@@ -21,7 +21,9 @@ public class RobotController2 : MonoBehaviour, IRobotController
     private MotorController[,] Motors = new MotorController[4, 2];
     private LegGroupInfo[] LegGroups = new LegGroupInfo[4];
     private float time;
-    private float stepOffset = 1f;
+    private float stepOffset = 1.5f;
+    private float stepOffset2 = 1f;
+    private float upScale = 2f;
     private Vector2[] footPositions;
 
     // Use this for initialization
@@ -225,45 +227,82 @@ public class RobotController2 : MonoBehaviour, IRobotController
         var x0 = leg.startPosition * 100;
         var x3 = leg.targetPosition * 100;
 
-        double x = 0, y = 0;
+        float x = 0, y = 0;
 
         // Check if completed and get x, y
         if (time > t3)
         {
             leg.moveProgram = MoveProgram.None;
-            leg.programData = new Dictionary<string, float>();
             x = x3;
             y = height;
         }
         else
         {
-            var r = stepOffset;
+            //var r = stepOffset;
+            //var dir = (x3 - x0 > 0) ? 1 : -1;
+
+            //var s = Mathf.PI * r + Mathf.Abs(x3 - x0) - 2 * r;
+            //float t1, t2;
+            //t1 = Mathf.PI * r / s / 2 * (t3 - t0) + t0;
+            //t2 = Mathf.PI * r / s / 2 * (t0 - t3) + t3;
+
+            //if (time < t1)
+            //{
+            //    x = x0 + dir * r * (1.0f - Mathf.Cos((time - t0) / (t1 - t0) * Mathf.PI / 2));
+            //    y = height - r * Mathf.Sin((time - t0) / (t1 - t0) * Mathf.PI / 2);
+            //}
+            //else if (time < t2)
+            //{
+            //    x = (time - t1) / (t2 - t1) * (Mathf.Abs(x3 - x0) - 2.0f * r) * dir + dir * r + x0;
+            //    y = height - r;
+            //}
+            //else
+            //{
+            //    x = x3 + dir * r * (-1.0f + Mathf.Sin((time - t2) / (t3 - t2) * Mathf.PI / 2));
+            //    y = height - r * Mathf.Cos((time - t2) / (t3 - t2) * Mathf.PI / 2);
+            //}
+
+            var r1 = stepOffset;
+            var r2 = stepOffset2;
             var dir = (x3 - x0 > 0) ? 1 : -1;
 
-            var s = Math.PI * r + Math.Abs(x3 - x0) - 2 * r;
-            double t1, t2; t1 = Math.PI * r / s / 2 * (t3 - t0) + t0;
-            t2 = Math.PI * r / s / 2 * (t0 - t3) + t3;
-            leg.programData["t1"] = (float)t1;
-            leg.programData["t2"] = (float)t2;
+            var s = Mathf.PI * r1 / 2 + Vector2.Distance(new Vector2(0, r1), new Vector2(Mathf.Abs(x3 - x0) - r1, r2)) + r2;
+            float t1, t2;
+            t1 = Mathf.PI * r1 / 2 / s * (t3 - t0) + t0;
+            t2 = r2 / s * (t0 - t3) + t3;
+
+            // Scale time
+            var dt1 = t1 - t0;
+            var dt2 = t2 - t1;
+            var dt3 = t3 - t2;
+            var st = dt1 + dt2 + dt3;
+            var srt = dt2 + dt3;
+            dt1 *= upScale;
+            var scaleR = (st - dt1) / srt;
+            dt2 *= scaleR;
+            dt3 *= scaleR;
+            t1 = t0 + dt1;
+            t2 = t1 + dt2;
+            t3 = t2 + dt3;
 
             if (time < t1)
             {
-                x = x0 + dir * r * (1.0 - Math.Cos((time - t0) / (t1 - t0) * Math.PI / 2));
-                y = height - r * Math.Sin((time - t0) / (t1 - t0) * Math.PI / 2);
+                x = x0 + dir * r1 * (1.0f - Mathf.Cos((time - t0) / (t1 - t0) * Mathf.PI / 2));
+                y = height - r1 * (time - t0) / (t1 - t0);
             }
             else if (time < t2)
             {
-                x = (time - t1) / (t2 - t1) * (Math.Abs(x3 - x0) - 2.0 * r) * dir + dir * r + x0;
-                y = height - r;
+                x = (time - t1) / (t2 - t1) * (Mathf.Abs(x3 - x0) - r1) * dir + dir * r1 + x0;
+                y = (time - t1) / (t2 - t1) * (r1 - r2) + height - r1;
             }
             else
             {
-                x = x3 + dir * r * (-1.0 + Math.Sin((time - t2) / (t3 - t2) * Math.PI / 2));
-                y = height - r * Math.Cos((time - t2) / (t3 - t2) * Math.PI / 2);
+                x = x3;
+                y = (time - t2) / (t3 - t2) * (r2) + height - r2;
             }
         }
 
-        SetMotorByPos(i, (float)x, (float)y);
+        SetMotorByPos(i, x, y);
     }
 
     private void Update_FootHorizontalMove(int i)
